@@ -26,6 +26,28 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+
+const apiUrl = (path: string) => {
+  if (!API_BASE_URL) return path;
+  return `${API_BASE_URL}${path}`;
+};
+
+const getApiErrorMessage = async (res: Response) => {
+  const contentType = res.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    const payload = await res.json().catch(() => null);
+    if (payload?.error) return payload.error;
+  }
+
+  if (res.status === 404) {
+    return 'Server API tidak ditemukan. Periksa URL backend (VITE_API_BASE_URL).';
+  }
+
+  return `Request gagal (${res.status})`;
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
@@ -35,7 +57,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const fetchOrders = async () => {
     const token = localStorage.getItem('adipa_token');
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch(apiUrl('/api/orders'), {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (res.ok) {
@@ -57,7 +79,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch(apiUrl('/api/products'));
         if (res.ok) {
           const data = await res.json();
           const formattedData = data.map((p: any) => ({ ...p, id: p.id.toString() }));
@@ -73,7 +95,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!token) return;
 
       try {
-        const res = await fetch("/api/auth/me", {
+        const res = await fetch(apiUrl('/api/auth/me'), {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -95,7 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(apiUrl('/api/auth/login'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -108,12 +130,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fetchOrders(); // Fetch orders after login
         return { success: true };
       } else {
-        const error = await res.json();
-        return { success: false, error: error.error };
+        const errorMessage = await getApiErrorMessage(res);
+        return { success: false, error: errorMessage };
       }
     } catch (err) {
       console.error("Login failed", err);
-      return { success: false, error: "Something went wrong" };
+      return { success: false, error: "Tidak bisa terhubung ke server API." };
     }
   };
 
@@ -124,7 +146,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const register = async (userData: any) => {
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(apiUrl('/api/auth/register'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -137,12 +159,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fetchOrders(); // Fetch orders after registration
         return { success: true };
       } else {
-        const error = await res.json();
-        return { success: false, error: error.error };
+        const errorMessage = await getApiErrorMessage(res);
+        return { success: false, error: errorMessage };
       }
     } catch (err) {
       console.error("Registration failed", err);
-      return { success: false, error: "Something went wrong" };
+      return { success: false, error: "Tidak bisa terhubung ke server API." };
     }
   };
 
