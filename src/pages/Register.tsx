@@ -34,7 +34,7 @@ const Register = () => {
     if (result.success) {
       navigate('/');
     } else {
-      setError(result.error || 'Pendaftaran gagal. Silakan coba lagi.');
+      setError(result.error || 'Pendaftaran gagal. Pastikan server API aktif dan konfigurasi VITE_API_BASE_URL benar.');
     }
   };
 

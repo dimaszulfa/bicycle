@@ -135,7 +135,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch (err) {
       console.error("Login failed", err);
-      return { success: false, error: "Tidak bisa terhubung ke server API." };
+      const detail = err instanceof Error ? err.message : 'Unknown error';
+      return { success: false, error: `Tidak bisa terhubung ke server API. (${detail})` };
     }
   };
 
@@ -164,7 +165,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch (err) {
       console.error("Registration failed", err);
-      return { success: false, error: "Tidak bisa terhubung ke server API." };
+      const detail = err instanceof Error ? err.message : 'Unknown error';
+      return { success: false, error: `Tidak bisa terhubung ke server API. (${detail})` };
     }
   };
 
