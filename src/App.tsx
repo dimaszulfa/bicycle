@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, LogOut, Search, Menu, X, Bike, Phone, Mail, Instagram, Facebook } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { cn } from './lib/utils';
